@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>💖 لعبة حبيبتي 💖</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'Amiri', serif;
+            background: linear-gradient(to bottom, #ffc0cb, #ffb6c1);
+            touch-action: manipulation;
+        }
+        .game-container {
+            width: 100vw; height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: none;
+        }
+        .kitty {
+            position: absolute;
+            bottom: 10%;
+            width: 70px; height: 70px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #ff69b4;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 30px;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.6);
+            z-index: 10;
+        }
+        .heart {
+            position: absolute;
+            top: -50px;
+            font-size: 32px;
+            animation: fall linear;
+        }
+        @keyframes fall { to { transform: translateY(100vh); } }
+        .score {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 20px;
+            color: #d63384;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+        }
+        .popup, .welcome, .rules, .end-screen {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #ff69b4;
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.5);
+            text-align: center;
+            z-index: 100;
+        }
+        .popup, .rules, .end-screen { display: none; }
+        .popup h2, .welcome h2, .rules h2, .end-screen h2 {
+            font-size: 24px;
+            color: #ff1493;
+            margin-bottom: 15px;
+        }
+        .popup button, .welcome button, .rules button, .end-screen button {
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .rules p, .end-screen p { margin: 10px 0; font-size: 18px; color: #ff1493; }
+    </style>
+</head>
+<body>
+    <div class="welcome" id="welcomeScreen">
+        <h2>أحبك يا عمري ❤️</h2>
+        <p>مرحبًا يا أجمل إنسانة 💕</p>
+        <button ontouchstart="" onclick="showRules()">ابدأي</button>
+    </div>
+
+    <div class="rules" id="rulesScreen">
+        <h2>✨ القواعد ✨</h2>
+        <p>🚫 ممنوع الغش أو الاستعانة بأحد</p>
+        <p>😘 وأبوسك أنا</p>
+        <button ontouchstart="" onclick="startGame()">ابدئي اللعب</button>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="score">النقاط: <span id="score">0</span></div>
+        <div class="kitty" id="kitty" style="left: 50%;">🎀</div>
+        <div class="popup" id="rewardPopup">
+            <h2>🎉 مبروك! حصلتِ على جائزة! 🎉</h2>
+            <p id="rewardText">💖 صورة خاصة!</p>
+            <button onclick="closePopup()">حلووو!</button>
+        </div>
+        <div class="end-screen" id="endScreen">
+            <h2>😢 خسرتِ</h2>
+            <p id="finalScore"></p>
+            <p id="finalReward"></p>
+            <button onclick="location.reload()">إعادة اللعب</button>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('gameContainer');
+        const kitty = document.getElementById('kitty');
+        const scoreDisplay = document.getElementById('score');
+        const popup = document.getElementById('rewardPopup');
+        const rewardText = document.getElementById('rewardText');
+        const endScreen = document.getElementById('endScreen');
+        const finalScore = document.getElementById('finalScore');
+        const finalReward = document.getElementById('finalReward');
+
+        let score = 0;
+        let misses = 0;
+
+        const rewards = [
+            { score: 50, text: "🍽️ عشاء وكذا" },
+            { score: 30, text: "🌟 صورة حلوه لي" },
+            { score: 20, text: "🎤 فويس لي" },
+            { score: 10, text: "📸 صورة لي" }
+        ];
+
+        function showRules() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('rulesScreen').style.display = 'block';
+        }
+
+        function startGame() {
+            document.getElementById('rulesScreen').style.display = 'none';
+            container.style.display = 'block';
+        }
+
+        function createHeart() {
+            if (misses >= 5) return;
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.textContent = Math.random() > 0.5 ? '🍭' : '🍬';
+            const x = Math.random() * 90;
+            heart.style.left = x + '%';
+            heart.style.animationDuration = (3 + Math.random() * 2) + 's';
+            container.appendChild(heart);
+
+            const interval = setInterval(() => {
+                const heartRect = heart.getBoundingClientRect();
+                const kittyRect = kitty.getBoundingClientRect();
+                if (
+                    heartRect.bottom >= kittyRect.top &&
+                    heartRect.left < kittyRect.right &&
+                    heartRect.right > kittyRect.left
+                ) {
+                    container.removeChild(heart);
+                    clearInterval(interval);
+                    increaseScore();
+                } else if (heartRect.top > window.innerHeight) {
+                    container.removeChild(heart);
+                    clearInterval(interval);
+                    misses++;
+                    if (misses >= 5) endGame();
+                }
+            }, 30);
+        }
+
+        function increaseScore() {
+            score++;
+            scoreDisplay.textContent = score;
+        }
+
+        function closePopup() {
+            popup.style.display = 'none';
+        }
+
+        function endGame() {
+            container.querySelectorAll('.heart').forEach(h => h.remove());
+            kitty.style.display = 'none';
+            finalScore.textContent = `النقاط: ${score}`;
+            const bestReward = rewards.find(r => score >= r.score);
+            finalReward.textContent = bestReward ? `🎁 جائزتك: ${bestReward.text}` : "💔 ما في جائزة، حاولي مرة ثانية!";
+            endScreen.style.display = 'block';
+        }
+
+        container.addEventListener('touchmove', function (e) {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const containerWidth = container.offsetWidth;
+                const kittyWidth = kitty.offsetWidth;
+                let x = touch.clientX - container.getBoundingClientRect().left - (kittyWidth / 2);
+                x = Math.max(0, Math.min(x, containerWidth - kittyWidth));
+                kitty.style.left = x + 'px';
+            }
+        });
+
+        setInterval(createHeart, 1500);
+    </script>
+</body>
+</html>
